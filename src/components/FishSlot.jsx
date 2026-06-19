@@ -34,6 +34,11 @@ const FRACTIONS = [
   { value: '0.75', label: '3/4' },
 ]
 
+// Compact dropdown caret for the narrow inches/fraction selects.
+const CARET = (
+  <span style={{ fontSize: 9, lineHeight: 1, opacity: 0.6 }}>▾</span>
+)
+
 export default function FishSlot({ fish, index, canRemove, onChange, onRemove }) {
   const [breakdownOpen, breakdown] = useDisclosure(false)
 
@@ -133,9 +138,10 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
               value={whole == null ? '' : String(whole)}
               onChange={(e) => handleWhole(e.currentTarget.value)}
               size="sm"
-              rightSectionWidth={0}
-              rightSection={<span />}
-              styles={{ input: { paddingInline: 4, textAlign: 'center' } }}
+              rightSectionWidth={12}
+              rightSectionPointerEvents="none"
+              rightSection={CARET}
+              styles={{ input: { paddingInlineStart: 6, paddingInlineEnd: 12 } }}
               style={{ flex: 1, minWidth: 0 }}
             />
             <Text c="dimmed" fw={700}>
@@ -147,9 +153,10 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
               onChange={(e) => handleFraction(e.currentTarget.value)}
               disabled={whole == null}
               size="sm"
-              rightSectionWidth={0}
-              rightSection={<span />}
-              styles={{ input: { paddingInline: 4, textAlign: 'center' } }}
+              rightSectionWidth={12}
+              rightSectionPointerEvents="none"
+              rightSection={CARET}
+              styles={{ input: { paddingInlineStart: 6, paddingInlineEnd: 12 } }}
               style={{ flex: 1, minWidth: 0 }}
             />
           </Group>
