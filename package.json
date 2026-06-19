@@ -14,7 +14,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "firebaseDeploy": "pnpm dlx firebase-tools deploy --only hosting",
+    "firebasePreviewDeploy": "pnpm dlx firebase-tools hosting:channel:deploy preview"
   },
   "dependencies": {
     "@mantine/core": "^9.3.2",
