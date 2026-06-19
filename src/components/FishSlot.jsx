@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import {
   Card,
   Select,
+  NativeSelect,
   Stack,
   Group,
   Text,
@@ -9,6 +10,7 @@ import {
   ActionIcon,
   Divider,
   Box,
+  Input,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
@@ -26,10 +28,10 @@ const SPECIES_OPTIONS = SPECIES.map((s) => ({
 }))
 
 const FRACTIONS = [
-  { value: '0', label: 'whole' },
-  { value: '0.25', label: '¼' },
-  { value: '0.5', label: '½' },
-  { value: '0.75', label: '¾' },
+  { value: '0', label: '0' },
+  { value: '0.25', label: '1/4' },
+  { value: '0.5', label: '1/2' },
+  { value: '0.75', label: '3/4' },
 ]
 
 export default function FishSlot({ fish, index, canRemove, onChange, onRemove }) {
@@ -38,24 +40,27 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
   const validLengths = useMemo(() => validLengthsFor(fish.species), [fish.species])
   const validSet = useMemo(() => new Set(validLengths), [validLengths])
 
-  // Whole-inch options: distinct integer floors that have at least one valid length.
-  const wholeOptions = useMemo(() => {
+  // Whole-inch options (native <select> data): a placeholder followed by distinct
+  // integer floors that have at least one valid length.
+  const wholeData = useMemo(() => {
     const wholes = new Set(validLengths.map((l) => Math.floor(l)))
-    return [...wholes]
-      .sort((a, b) => a - b)
-      .map((w) => ({ value: String(w), label: `${w}"` }))
+    return [
+      { value: '', label: 'in', disabled: true },
+      ...[...wholes].sort((a, b) => a - b).map((w) => ({ value: String(w), label: String(w) })),
+    ]
   }, [validLengths])
 
   const whole = fish.length == null ? null : Math.floor(fish.length)
   const fraction = fish.length == null ? null : fish.length - whole
 
-  // Which fractions are valid for the currently selected whole inch.
-  const fractionOptions = useMemo(() => {
-    if (whole == null) return FRACTIONS.map((f) => ({ ...f, disabled: true }))
-    return FRACTIONS.map((f) => ({
+  // Fraction options (native <select> data) with a leading placeholder; each fraction is
+  // disabled unless whole+fraction is a valid length for this species.
+  const fractionData = useMemo(() => {
+    const opts = FRACTIONS.map((f) => ({
       ...f,
-      disabled: !validSet.has(whole + Number(f.value)),
+      disabled: whole == null || !validSet.has(whole + Number(f.value)),
     }))
+    return [{ value: '', label: '–', disabled: true }, ...opts]
   }, [whole, validSet])
 
   function handleSpecies(value) {
@@ -65,7 +70,7 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
   }
 
   function handleWhole(value) {
-    if (value == null) {
+    if (!value) {
       onChange({ length: null })
       return
     }
@@ -77,7 +82,7 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
   }
 
   function handleFraction(value) {
-    if (whole == null || value == null) return
+    if (whole == null || !value) return
     onChange({ length: whole + Number(value) })
   }
 
@@ -121,25 +126,34 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
           comboboxProps={{ width: 'target', position: 'bottom-start' }}
         />
 
-        <Select
-          label="Length"
-          placeholder="in."
-          data={wholeOptions}
-          value={whole == null ? null : String(whole)}
-          onChange={handleWhole}
-          searchable
-          size="sm"
-        />
-
-        <Select
-          label="Fraction"
-          data={fractionOptions}
-          value={fraction == null ? null : String(fraction)}
-          onChange={handleFraction}
-          disabled={whole == null}
-          allowDeselect={false}
-          size="sm"
-        />
+        <Input.Wrapper label="Length (in.)">
+          <Group gap={4} wrap="nowrap" align="center">
+            <NativeSelect
+              data={wholeData}
+              value={whole == null ? '' : String(whole)}
+              onChange={(e) => handleWhole(e.currentTarget.value)}
+              size="sm"
+              rightSectionWidth={0}
+              rightSection={<span />}
+              styles={{ input: { paddingInline: 4, textAlign: 'center' } }}
+              style={{ flex: 1, minWidth: 0 }}
+            />
+            <Text c="dimmed" fw={700}>
+              –
+            </Text>
+            <NativeSelect
+              data={fractionData}
+              value={fraction == null ? '' : String(fraction)}
+              onChange={(e) => handleFraction(e.currentTarget.value)}
+              disabled={whole == null}
+              size="sm"
+              rightSectionWidth={0}
+              rightSection={<span />}
+              styles={{ input: { paddingInline: 4, textAlign: 'center' } }}
+              style={{ flex: 1, minWidth: 0 }}
+            />
+          </Group>
+        </Input.Wrapper>
 
         <Divider my={4} />
 
