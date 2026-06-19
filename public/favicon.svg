@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#16171d"/>
+  <g transform="translate(256 256)">
+    <!-- forked tail -->
+    <path d="M-150 -72 L-78 0 L-150 72 L-120 0 Z" fill="#12b886"/>
+    <!-- top fin -->
+    <path d="M-15 -78 L35 -132 L82 -72 Z" fill="#12b886"/>
+    <!-- bottom fin -->
+    <path d="M-5 78 L30 120 L70 72 Z" fill="#12b886"/>
+    <!-- body -->
+    <ellipse cx="30" cy="0" rx="120" ry="82" fill="#20c997"/>
+    <!-- eye -->
+    <circle cx="108" cy="-16" r="13" fill="#16171d"/>
+  </g>
+</svg>
