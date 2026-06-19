@@ -29,7 +29,7 @@ export default function App() {
     <Container size="sm" py="md" px="xs">
       <Box ta="center" mb="md">
         <Title order={1} fz={{ base: 'h2', sm: 'h1' }}>
-          🎣 Fish Weight
+          🎣 Fish Length to Weight
         </Title>
         <Text size="sm" c="dimmed">
           Estimate weight from length — compare up to {MAX_FISH} fish.
@@ -62,7 +62,7 @@ export default function App() {
 
       <Text ta="center" size="xs" c="dimmed" mt="xl">
         Weights are estimates derived from length only, blended across MN, WI/IA, ND,
-        and NY tables. For comparison / catch-and-release use, not official measurement.
+        and NY tables. Not official state measurements.
       </Text>
 
       <UpdatePrompt />
