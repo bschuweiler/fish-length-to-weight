@@ -15,8 +15,8 @@ export const SPECIES = ['walleye', 'northern', 'smallmouth']
 // Per-species inclusive length bounds (inches) + the bundled lookup data.
 export const SPECIES_DETAILS = {
   walleye: { label: 'Walleye', lower: 8, upper: 35, data: walleye },
-  northern: { label: 'Northern Pike', lower: 12, upper: 54, data: northern },
-  smallmouth: { label: 'Smallmouth Bass', lower: 6, upper: 25, data: smallmouth },
+  northern: { label: 'Northern', lower: 12, upper: 54, data: northern },
+  smallmouth: { label: 'Smallmouth', lower: 6, upper: 25, data: smallmouth },
 }
 
 // The four source tables. `lookup` is the data key; `label` is the display name.
