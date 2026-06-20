@@ -11,13 +11,13 @@ const CURVES = {
 }
 
 export const SPECIES_DETAILS = {
-  walleye:  { label: 'Walleye',       lower: 8,  upper: 35, ...CURVES.walleye  },
-  northern: { label: 'Northern Pike', lower: 12, upper: 54, ...CURVES.northern },
-  bass:     { label: 'Bass',          lower: 6,  upper: 25, ...CURVES.bass     },
-  crappie:  { label: 'Crappie',       lower: 6,  upper: 20, ...CURVES.crappie  },
-  trout:    { label: 'Trout',         lower: 6,  upper: 22, ...CURVES.trout    },
-  sunfish:  { label: 'Sunfish',       lower: 4,  upper: 16, ...CURVES.sunfish  },
-  muskie:   { label: 'Muskellunge',   lower: 35, upper: 62, ...CURVES.muskie   },
+  walleye:  { label: 'Walleye',       lower: 14, upper: 28, ...CURVES.walleye  },
+  northern: { label: 'Northern Pike', lower: 18, upper: 40, ...CURVES.northern },
+  bass:     { label: 'Bass',          lower: 12, upper: 23, ...CURVES.bass     },
+  crappie:  { label: 'Crappie',       lower: 8,  upper: 17, ...CURVES.crappie  },
+  trout:    { label: 'Trout',         lower: 8,  upper: 18, ...CURVES.trout    },
+  sunfish:  { label: 'Sunfish',       lower: 6,  upper: 14, ...CURVES.sunfish  },
+  muskie:   { label: 'Muskellunge',   lower: 48, upper: 56, ...CURVES.muskie   },
 }
 
 /** True if `n` is a whole or quarter-inch value (multiple of 0.25). */
