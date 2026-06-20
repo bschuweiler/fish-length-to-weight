@@ -34,6 +34,10 @@ done once during data prep — not at runtime):
 The four columns map to: `MN DNR Table`, `Catch & Release Formulas (WI and IA DNR)`,
 `ND DNR Table`, `NY DEC Table`.
 
+## Why it is very limited
+
+Because this is all I needed for now.
+
 ## Tech
 
 React + Vite, Mantine (dark theme), `vite-plugin-pwa`. Package manager: **pnpm** (via
