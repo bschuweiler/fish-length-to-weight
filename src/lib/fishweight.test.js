@@ -1,28 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import {
-  convertibleToFloat,
   isQuarterValue,
   normalizeLength,
-  checkArgs,
   lengthToWeight,
   validLengthsFor,
   formatLbOz,
   SPECIES_DETAILS,
 } from './fishweight.js'
-
-describe('convertibleToFloat', () => {
-  it('accepts numeric values and numeric strings', () => {
-    for (const v of [17, 17.0, 28.25, 16.5, 44.75, '23.75', '21', '16.50']) {
-      expect(convertibleToFloat(v)).toBe(true)
-    }
-  })
-
-  it('rejects non-numeric values', () => {
-    for (const v of ['something', ';$%', '', null, undefined]) {
-      expect(convertibleToFloat(v)).toBe(false)
-    }
-  })
-})
 
 describe('isQuarterValue', () => {
   it('accepts whole and quarter values', () => {
@@ -48,104 +32,92 @@ describe('normalizeLength', () => {
   })
 })
 
-describe('checkArgs', () => {
-  it('accepts valid species + lengths', () => {
-    expect(() => checkArgs('walleye', '23.25')).not.toThrow()
-    expect(() => checkArgs('walleye', '14')).not.toThrow()
-    expect(() => checkArgs('northern', '28.5')).not.toThrow()
-    expect(() => checkArgs('smallmouth', '7.5')).not.toThrow()
-    // bounds are inclusive
-    expect(() => checkArgs('walleye', SPECIES_DETAILS.walleye.lower)).not.toThrow()
-    expect(() => checkArgs('walleye', SPECIES_DETAILS.walleye.upper)).not.toThrow()
-  })
-
-  it('rejects invalid / wrong-case species', () => {
-    for (const s of ['Small mouth', 'Walleye', 'Northern', 'Pike', '', null]) {
-      expect(() => checkArgs(s, '23.25')).toThrow(/Species is not one of/)
-    }
-  })
-
-  it('rejects out-of-bounds lengths', () => {
-    expect(() => checkArgs('walleye', SPECIES_DETAILS.walleye.lower - 0.25)).toThrow(
-      /outside reasonable bounds/
-    )
-    expect(() => checkArgs('walleye', SPECIES_DETAILS.walleye.upper + 0.25)).toThrow(
-      /outside reasonable bounds/
-    )
-    expect(() => checkArgs('smallmouth', SPECIES_DETAILS.smallmouth.upper + 2.75)).toThrow(
-      /outside reasonable bounds/
-    )
-  })
-
-  it('rejects non-numeric lengths', () => {
-    expect(() => checkArgs('walleye', null)).toThrow(/not a number/)
-  })
-
-  it('rejects non whole/quarter lengths', () => {
-    for (const v of [18.1, 18.26, 18.875, 18.625]) {
-      expect(() => checkArgs('walleye', v)).toThrow(/not whole or quarter value/)
-    }
-  })
-})
-
 describe('lengthToWeight', () => {
-  it('returns correct values and average for walleye 23.75', () => {
-    const result = lengthToWeight('walleye', '23.75')
-    expect(result.species).toBe('walleye')
-    expect(result.length).toBe('23.75')
-    expect(result.weights['MN DNR Table']).toBe(5.225)
-    expect(result.weights['Catch & Release Formulas (WI and IA DNR)']).toBe(4.962)
-    expect(result.weights['ND DNR Table']).toBe(4.95)
-    expect(result.weights['NY DEC Table']).toBe(4.531)
-    expect(result.average).toBeCloseTo(4.917, 3)
-    expect(result.tableCount).toBe(4)
+  it('throws on invalid species', () => {
+    for (const s of ['Bass', 'Walleye', 'Northern', 'Pike', '', null]) {
+      expect(() => lengthToWeight(s, '23.25')).toThrow(/Species is not one of/)
+    }
   })
 
-  it('averages only the non-null tables', () => {
-    // walleye "8": MN null, CR 0.19, ND 0.2, NY null  -> avg of 2
-    const result = lengthToWeight('walleye', '8')
-    expect(result.weights['MN DNR Table']).toBeNull()
-    expect(result.weights['NY DEC Table']).toBeNull()
-    expect(result.tableCount).toBe(2)
-    expect(result.average).toBeCloseTo((0.19 + 0.2) / 2, 6)
+  it('throws on non-numeric length', () => {
+    expect(() => lengthToWeight('walleye', null)).toThrow(/not a number/)
   })
 
-  it('normalizes trailing-zero lengths before lookup', () => {
+  it('throws on out-of-bounds length', () => {
+    expect(() => lengthToWeight('walleye', SPECIES_DETAILS.walleye.lower - 0.25)).toThrow(/outside reasonable bounds/)
+    expect(() => lengthToWeight('walleye', SPECIES_DETAILS.walleye.upper + 0.25)).toThrow(/outside reasonable bounds/)
+  })
+
+  it('throws on non-quarter-inch length', () => {
+    for (const v of [18.1, 18.26, 18.875, 18.625]) {
+      expect(() => lengthToWeight('walleye', v)).toThrow(/not whole or quarter value/)
+    }
+  })
+
+  it('returns exact power curve value for each species', () => {
+    for (const [species, length] of [
+      ['walleye', 20], ['northern', 30], ['bass', 17],
+      ['crappie', 12], ['trout', 14], ['sunfish', 10], ['muskie', 50],
+    ]) {
+      const { a, b } = SPECIES_DETAILS[species]
+      expect(lengthToWeight(species, String(length)).weight).toBe(a * Math.pow(length, b))
+    }
+  })
+
+  it('returns correct shape', () => {
+    const r = lengthToWeight('walleye', '20')
+    expect(r.species).toBe('walleye')
+    expect(r.length).toBe('20')
+    expect(typeof r.weight).toBe('number')
+  })
+
+  it('normalizes trailing-zero lengths', () => {
     expect(() => lengthToWeight('walleye', '20.500')).not.toThrow()
     expect(lengthToWeight('walleye', '21.5').length).toBe('21.5')
+    const { a, b } = SPECIES_DETAILS.walleye
+    expect(lengthToWeight('walleye', '20.500').weight).toBe(a * Math.pow(20.5, b))
   })
 
-  it('handles happy paths across species', () => {
-    expect(() => lengthToWeight('northern', '22.25')).not.toThrow()
-    expect(() => lengthToWeight('smallmouth', '17.0')).not.toThrow()
+  it('quarter-inch weight falls strictly between adjacent whole-inch weights', () => {
+    const w20   = lengthToWeight('walleye', '20').weight
+    const w2025 = lengthToWeight('walleye', '20.25').weight
+    const w21   = lengthToWeight('walleye', '21').weight
+    expect(w2025).toBeGreaterThan(w20)
+    expect(w2025).toBeLessThan(w21)
   })
 })
 
 describe('validLengthsFor', () => {
-  it('returns sorted numeric lengths within the species range', () => {
+  it('starts and ends at species bounds', () => {
     const lengths = validLengthsFor('walleye')
-    expect(lengths[0]).toBe(8)
-    expect(lengths[lengths.length - 1]).toBe(35)
-    // sorted ascending
+    expect(lengths[0]).toBe(SPECIES_DETAILS.walleye.lower)
+    expect(lengths[lengths.length - 1]).toBe(SPECIES_DETAILS.walleye.upper)
+  })
+
+  it('increments by 0.25', () => {
+    const lengths = validLengthsFor('walleye')
     for (let i = 1; i < lengths.length; i++) {
-      expect(lengths[i]).toBeGreaterThan(lengths[i - 1])
+      expect(lengths[i] - lengths[i - 1]).toBeCloseTo(0.25, 5)
     }
+  })
+
+  it('returns empty array for unknown species', () => {
+    expect(validLengthsFor('unknown')).toEqual([])
   })
 })
 
 describe('formatLbOz', () => {
-  it('converts decimal pounds to lb + oz', () => {
-    expect(formatLbOz(4.917).text).toBe('4 lb 15 oz')
-    expect(formatLbOz(1.5).text).toBe('1 lb 8 oz')
+  it('converts decimal pounds to lb + oz with hundredths', () => {
+    expect(formatLbOz(4.917).text).toBe('4 lb 14.67 oz')
+    expect(formatLbOz(1.5).text).toBe('1 lb 8.00 oz')
   })
 
-  it('renders whole pounds as "N lb 0 oz"', () => {
-    expect(formatLbOz(3).text).toBe('3 lb 0 oz')
+  it('renders whole pounds as "N lb 0.00 oz"', () => {
+    expect(formatLbOz(3).text).toBe('3 lb 0.00 oz')
   })
 
-  it('rolls 16 oz up into the next pound', () => {
-    // 4.97 -> 0.97*16 = 15.52 -> rounds to 16 -> 5 lb 0 oz
-    expect(formatLbOz(4.97).text).toBe('5 lb 0 oz')
+  it('rolls oz up into the next pound when toFixed(2) reaches 16.00', () => {
+    expect(formatLbOz(4.9996875).text).toBe('5 lb 0.00 oz')
   })
 
   it('renders nullish input as a dash', () => {

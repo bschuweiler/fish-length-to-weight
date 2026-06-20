@@ -1,49 +1,30 @@
-/**
- * Fish length-to-weight lookup.
- *
- * JavaScript port of the original Python `fishweight.py`. The lookup tables are
- * pre-computed (including quarter-inch interpolated values) and bundled as JSON;
- * this module is a pure lookup + non-null average, with the same validation rules.
- */
-import walleye from '../data/walleye.json'
-import northern from '../data/northern.json'
-import smallmouth from '../data/smallmouth.json'
+export const SPECIES = ['walleye', 'northern', 'bass', 'crappie', 'trout', 'sunfish', 'muskie']
 
-// Ordered list of supported species keys (lowercase, as used in the data).
-export const SPECIES = ['walleye', 'northern', 'smallmouth']
-
-// Per-species inclusive length bounds (inches) + the bundled lookup data.
-export const SPECIES_DETAILS = {
-  walleye: { label: 'Walleye', lower: 8, upper: 35, data: walleye },
-  northern: { label: 'Northern', lower: 12, upper: 54, data: northern },
-  smallmouth: { label: 'Smallmouth', lower: 6, upper: 25, data: smallmouth },
+const CURVES = {
+  walleye:  { a: 0.0002216374419091907,   b: 3.1412298634744915  },
+  northern: { a: 0.00012406269747891442,  b: 3.165326888190031   },
+  bass:     { a: 0.000489565638832141,    b: 3.078634332927227   },
+  crappie:  { a: 0.00034746685514873833,  b: 3.2341739421490288  },
+  trout:    { a: 0.0004903976481472857,   b: 2.9270130438062596  },
+  sunfish:  { a: 0.000898156174180338,    b: 2.980274259434065   },
+  muskie:   { a: 0.000047817510626631486, b: 3.4430159361118586  },
 }
 
-// The four source tables. `lookup` is the data key; `label` is the display name.
-// (The original Python mislabelled this "Forumlas"; corrected to "Formulas" here.)
-export const CONVERSION_SYSTEMS = [
-  { lookup: 'MN', label: 'MN DNR Table' },
-  { lookup: 'CR', label: 'Catch & Release Formulas (WI and IA DNR)' },
-  { lookup: 'ND', label: 'ND DNR Table' },
-  { lookup: 'NY', label: 'NY DEC Table' },
-]
-
-/** True if `value` parses as a finite number. */
-export function convertibleToFloat(value) {
-  if (value === null || value === undefined || value === '') return false
-  return !Number.isNaN(Number(value))
+export const SPECIES_DETAILS = {
+  walleye:  { label: 'Walleye',       lower: 8,  upper: 35, ...CURVES.walleye  },
+  northern: { label: 'Northern Pike', lower: 12, upper: 54, ...CURVES.northern },
+  bass:     { label: 'Bass',          lower: 6,  upper: 25, ...CURVES.bass     },
+  crappie:  { label: 'Crappie',       lower: 6,  upper: 20, ...CURVES.crappie  },
+  trout:    { label: 'Trout',         lower: 6,  upper: 22, ...CURVES.trout    },
+  sunfish:  { label: 'Sunfish',       lower: 4,  upper: 16, ...CURVES.sunfish  },
+  muskie:   { label: 'Muskellunge',   lower: 35, upper: 62, ...CURVES.muskie   },
 }
 
 /** True if `n` is a whole or quarter-inch value (multiple of 0.25). */
 export function isQuarterValue(n) {
-  // 0.25/0.5/0.75 are exactly representable in IEEE-754, so this is exact.
   return Number(n) % 0.25 === 0
 }
 
-/**
- * Normalize a length to its lookup-table key: strip trailing zeros and a
- * trailing decimal point so "23.50" -> "23.5" and "21.00" -> "21".
- */
 export function normalizeLength(length) {
   let s = String(length)
   if (s.includes('.')) {
@@ -52,94 +33,53 @@ export function normalizeLength(length) {
   return s
 }
 
-/**
- * Validate arguments. Throws an Error (mirroring the Python ValueError messages
- * and order) when species or length are invalid. Returns nothing on success.
- */
-export function checkArgs(species, length) {
+export function lengthToWeight(species, length) {
   if (!SPECIES.includes(species)) {
     throw new Error(`Species is not one of ${JSON.stringify(SPECIES)}`)
   }
 
-  // Check number-ness first because the remaining checks treat length as a float.
-  if (!convertibleToFloat(length)) {
+  const lengthAsFloat = Number(length)
+
+  if (length == null || !Number.isFinite(lengthAsFloat)) {
     throw new Error('Length argument is not a number')
   }
 
-  const lengthAsFloat = Number(length)
-
   const { lower, upper } = SPECIES_DETAILS[species]
-  if (!(lengthAsFloat >= lower && lengthAsFloat <= upper)) {
-    throw new Error(
-      `Length argument is outside reasonable bounds of ${lower} and ${upper}`
-    )
+  if (lengthAsFloat < lower || lengthAsFloat > upper) {
+    throw new Error(`Length argument is outside reasonable bounds of ${lower} and ${upper}`)
   }
 
   if (!isQuarterValue(lengthAsFloat)) {
     throw new Error('Length argument is not whole or quarter value')
   }
-}
-
-/**
- * Look up estimated weights for a species + length.
- *
- * @returns {{species: string, length: string, weights: Object, average: number}}
- *   `weights` maps each table's display label to its value (or null if the table
- *   has no value at that length). `average` is the arithmetic mean of the
- *   non-null table values, in decimal pounds.
- * @throws if arguments are invalid or no record exists for the length.
- */
-export function lengthToWeight(species, length) {
-  checkArgs(species, length)
 
   const key = normalizeLength(length)
-  const record = SPECIES_DETAILS[species].data[key]
-  if (!record) {
-    throw new Error(`No results in ${species} table for length "${key}"`)
-  }
-
-  const weights = {}
-  const values = []
-  for (const { lookup, label } of CONVERSION_SYSTEMS) {
-    const value = record[lookup] ?? null
-    weights[label] = value
-    if (value !== null && value !== undefined) {
-      values.push(Number(value))
-    }
-  }
-
-  const average = values.reduce((sum, v) => sum + v, 0) / values.length
-
-  return { species, length: key, weights, average, tableCount: values.length }
+  const { a, b } = SPECIES_DETAILS[species]
+  const weight = a * Math.pow(Number(key), b)
+  return { species, length: key, weight }
 }
 
-/**
- * Sorted ascending list of valid length values (numbers) present in a species'
- * data. Used to drive the whole-inch picker and which fractions are selectable.
- */
 export function validLengthsFor(species) {
-  const data = SPECIES_DETAILS[species]?.data
-  if (!data) return []
-  return Object.keys(data)
-    .map(Number)
-    .sort((a, b) => a - b)
+  const details = SPECIES_DETAILS[species]
+  if (!details) return []
+  const { lower, upper } = details
+  const steps = Math.round((upper - lower) / 0.25)
+  const lengths = []
+  for (let i = 0; i <= steps; i++) {
+    lengths.push(lower + i * 0.25)
+  }
+  return lengths
 }
 
-/**
- * Convert decimal pounds to pounds + ounces, rounding ounces to the nearest
- * whole and rolling 16 oz up into the next pound.
- *
- * @returns {{lb: number, oz: number, text: string}}
- */
 export function formatLbOz(pounds) {
   if (pounds === null || pounds === undefined || Number.isNaN(Number(pounds))) {
     return { lb: 0, oz: 0, text: '—' }
   }
   let lb = Math.floor(pounds)
-  let oz = Math.round((pounds - lb) * 16)
-  if (oz === 16) {
+  const ozStr = ((pounds - lb) * 16).toFixed(2)
+  if (parseFloat(ozStr) >= 16) {
     lb += 1
-    oz = 0
+    return { lb, oz: 0, text: `${lb} lb 0.00 oz` }
   }
-  return { lb, oz, text: `${lb} lb ${oz} oz` }
+  return { lb, oz: parseFloat(ozStr), text: `${lb} lb ${ozStr} oz` }
 }

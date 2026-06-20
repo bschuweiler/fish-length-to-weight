@@ -61,8 +61,7 @@ export default function App() {
       </Group>
 
       <Text ta="center" size="xs" c="dimmed" mt="xl">
-        Weights are estimates derived from length only, blended across MN, WI/IA, ND,
-        and NY tables. Not official state measurements.
+        Weights are estimates based on MN DNR length-to-weight data. Not official measurements.
       </Text>
 
       <UpdatePrompt />

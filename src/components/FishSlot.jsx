@@ -12,11 +12,9 @@ import {
   Box,
   Input,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
 import {
   SPECIES,
   SPECIES_DETAILS,
-  CONVERSION_SYSTEMS,
   validLengthsFor,
   lengthToWeight,
   formatLbOz,
@@ -34,19 +32,14 @@ const FRACTIONS = [
   { value: '0.75', label: '3/4' },
 ]
 
-// Compact dropdown caret for the narrow inches/fraction selects.
 const CARET = (
   <span style={{ fontSize: 9, lineHeight: 1, opacity: 0.6 }}>▾</span>
 )
 
 export default function FishSlot({ fish, index, canRemove, onChange, onRemove }) {
-  const [breakdownOpen, breakdown] = useDisclosure(false)
-
   const validLengths = useMemo(() => validLengthsFor(fish.species), [fish.species])
   const validSet = useMemo(() => new Set(validLengths), [validLengths])
 
-  // Whole-inch options (native <select> data): a placeholder followed by distinct
-  // integer floors that have at least one valid length.
   const wholeData = useMemo(() => {
     const wholes = new Set(validLengths.map((l) => Math.floor(l)))
     return [
@@ -58,8 +51,6 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
   const whole = fish.length == null ? null : Math.floor(fish.length)
   const fraction = fish.length == null ? null : fish.length - whole
 
-  // Fraction options (native <select> data) with a leading placeholder; each fraction is
-  // disabled unless whole+fraction is a valid length for this species.
   const fractionData = useMemo(() => {
     const opts = FRACTIONS.map((f) => ({
       ...f,
@@ -70,7 +61,6 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
 
   function handleSpecies(value) {
     if (!value) return
-    // Reset length when species changes (its valid range/values differ).
     onChange({ species: value, length: null })
   }
 
@@ -80,7 +70,6 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
       return
     }
     const w = Number(value)
-    // Keep the current fraction if still valid, else snap to the first valid one.
     const keep = fraction != null && validSet.has(w + fraction) ? fraction : null
     const f = keep != null ? keep : firstValidFraction(w, validSet)
     onChange({ length: w + f })
@@ -166,20 +155,9 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
 
         <Box ta="center">
           {result ? (
-            <>
-              <Title order={3} fz={{ base: 'h4', sm: 'h3' }} c="teal.4">
-                {formatLbOz(result.average).text}
-              </Title>
-              <Text
-                size="xs"
-                c="dimmed"
-                style={{ cursor: 'pointer' }}
-                onClick={breakdown.toggle}
-              >
-                avg of {result.tableCount} table{result.tableCount === 1 ? '' : 's'}{' '}
-                {breakdownOpen ? '▲' : '▼'}
-              </Text>
-            </>
+            <Title order={3} fz={{ base: 'h4', sm: 'h3' }} c="teal.4">
+              {formatLbOz(result.weight).text}
+            </Title>
           ) : error ? (
             <Text size="sm" c="red.4">
               {error}
@@ -190,22 +168,6 @@ export default function FishSlot({ fish, index, canRemove, onChange, onRemove })
             </Text>
           )}
         </Box>
-
-        {breakdownOpen && result && (
-          <Stack gap={2}>
-            {CONVERSION_SYSTEMS.map(({ lookup, label }) => {
-              const value = result.weights[label]
-              return (
-                <Group key={lookup} justify="space-between" wrap="nowrap" gap={4}>
-                  <Text size="xs" c="dimmed" truncate title={label}>
-                    {lookup}
-                  </Text>
-                  <Text size="xs">{value == null ? '—' : formatLbOz(value).text}</Text>
-                </Group>
-              )
-            })}
-          </Stack>
-        )}
       </Stack>
     </Card>
   )
