@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Container, Title, Text, Button, Group, Box } from '@mantine/core'
 import FishSlot from './components/FishSlot.jsx'
 import UpdatePrompt from './components/UpdatePrompt.jsx'
+import MinnesotaIcon from './components/MinnesotaIcon.jsx'
 
 const MAX_FISH = 3
 let nextId = 1
@@ -28,8 +29,9 @@ export default function App() {
   return (
     <Container size="sm" py="md" px="xs">
       <Box ta="center" mb="md">
-        <Title order={1} fz={{ base: 'h2', sm: 'h1' }}>
-          🎣 Fish Length to Weight
+        <MinnesotaIcon size={56} color="var(--mantine-color-teal-4)" />
+        <Title order={1} fz={{ base: 'h2', sm: 'h1' }} mt="xs">
+          Fish Length to Weight
         </Title>
         <Text size="sm" c="dimmed">
           Estimate weight from length — compare up to {MAX_FISH} fish.

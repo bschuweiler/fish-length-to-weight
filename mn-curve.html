@@ -2,8 +2,9 @@
 <html>
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <title>MN DNR Power Curve Fit</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <style>
   body { background: #1a1a2e; color: #eee; font-family: sans-serif; padding: 32px 48px; }
   h2 { text-align: center; color: #a0c4ff; margin-bottom: 4px; font-size: 22px; }
@@ -24,7 +25,7 @@
 
 <div class="chart-wrap"><div class="chart-inner"><canvas id="walleyeChart"></canvas></div></div>
 <div class="chart-wrap"><div class="chart-inner"><canvas id="northernChart"></canvas></div></div>
-<div class="chart-wrap"><div class="chart-inner"><canvas id="smallmouthChart"></canvas></div></div>
+<div class="chart-wrap"><div class="chart-inner"><canvas id="bassChart"></canvas></div></div>
 <div class="chart-wrap"><div class="chart-inner"><canvas id="crappieChart"></canvas></div></div>
 <div class="chart-wrap"><div class="chart-inner"><canvas id="troutChart"></canvas></div></div>
 <div class="chart-wrap"><div class="chart-inner"><canvas id="sunfishChart"></canvas></div></div>
@@ -126,7 +127,7 @@ const MN_COLOR = '#4dabf7'
 
 makeChart('walleyeChart',   'Walleye',        WALLEYE_MN,     8, 35, MN_COLOR)
 makeChart('northernChart',  'Northern Pike',  NORTHERN_MN,   12, 54, MN_COLOR)
-makeChart('smallmouthChart','Bass',           BASS_MN,        6, 25, MN_COLOR)
+makeChart('bassChart',      'Bass',           BASS_MN,        6, 25, MN_COLOR)
 makeChart('crappieChart',   'Crappie',        CRAPPIE_MN,     6, 20, MN_COLOR)
 makeChart('troutChart',     'Trout',          TROUT_MN,       6, 22, MN_COLOR)
 makeChart('sunfishChart',   'Sunfish',        SUNFISH_MN,     4, 16, MN_COLOR)
