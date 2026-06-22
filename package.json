@@ -8,10 +8,10 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm lint && pnpm test && pnpm build && vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "pnpm lint && pnpm test && pnpm build && vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "icons": "node scripts/generate-icons.mjs",
