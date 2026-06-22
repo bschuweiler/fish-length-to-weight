@@ -1,25 +1,30 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Container, Title, Text, Button, Group, Box } from '@mantine/core'
 import FishSlot from './components/FishSlot.jsx'
 import UpdatePrompt from './components/UpdatePrompt.jsx'
 import MinnesotaIcon from './components/MinnesotaIcon.jsx'
 
 const MAX_FISH = 3
-let nextId = 1
-
-function makeFish() {
-  return { id: nextId++, species: 'walleye', length: null }
-}
+const DEFAULT_SPECIES = ['walleye', 'northern', 'bass']
 
 export default function App() {
-  const [fishes, setFishes] = useState(() => [makeFish(), makeFish()])
+  // Tracks which slot in DEFAULT_SPECIES the next added fish should use.
+  // Starts at 2 (Bass) so the cycle after the two pre-set fish is: Bass → Walleye → Northern → …
+  const addSpeciesIdx = useRef(2)
+
+  const [fishes, setFishes] = useState([
+    { id: 1, species: 'walleye', length: null },
+    { id: 2, species: 'northern', length: null },
+  ])
 
   function updateFish(id, patch) {
     setFishes((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)))
   }
 
   function addFish() {
-    setFishes((prev) => (prev.length >= MAX_FISH ? prev : [...prev, makeFish()]))
+    const species = DEFAULT_SPECIES[addSpeciesIdx.current % DEFAULT_SPECIES.length]
+    addSpeciesIdx.current++
+    setFishes((prev) => (prev.length >= MAX_FISH ? prev : [...prev, { id: Date.now(), species, length: null }]))
   }
 
   function removeFish(id) {
