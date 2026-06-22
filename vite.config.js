@@ -33,6 +33,8 @@ export default defineConfig({
       workbox: {
         // Precache the built app + bundled JSON so lookups work fully offline.
         globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
+        // Don't intercept navigation to mn-curve.html — let it load from the network.
+        navigateFallbackDenylist: [/^\/mn-curve\.html/],
       },
     }),
   ],

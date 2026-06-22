@@ -68,7 +68,10 @@ export default function App() {
       </Group>
 
       <Text ta="center" size="xs" c="dimmed" mt="xl">
-        Weights are estimates based on MN DNR length-to-weight data. Not official measurements.
+        Weights are estimates based on MN DNR length-to-weight data. Not official measurements.{' '}
+        <Text component="a" href="/mn-curve.html" size="xs" c="dimmed" td="underline">
+          Source data
+        </Text>
       </Text>
 
       <UpdatePrompt />
